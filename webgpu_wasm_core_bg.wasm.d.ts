@@ -1,0 +1,30 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const init_wasm: () => void;
+export const normalize_vector: (a: number) => void;
+export const normalize_vector_generic: (a: number, b: number) => void;
+export const vector_add: (a: number, b: number, c: number, d: number) => void;
+export const vector_sub: (a: number, b: number, c: number, d: number) => void;
+export const vector_scale: (a: number, b: number, c: number, d: number) => void;
+export const vector_dot: (a: number, b: number, c: number) => number;
+export const vector_cross_3d: (a: number, b: number, c: number) => void;
+export const multiply_mat4: (a: number, b: number, c: number) => void;
+export const matrix_transpose: (a: number, b: number, c: number, d: number) => void;
+export const matrix_det_2x2: (a: number) => number;
+export const matrix_det_3x3: (a: number) => number;
+export const matrix_inv_2x2: (a: number, b: number) => number;
+export const quadratic_form: (a: number, b: number, c: number) => number;
+export const __wbg_processedparticles_free: (a: number, b: number) => void;
+export const processedparticles_free: (a: number) => void;
+export const preprocess_particles: (a: number, b: number, c: number) => number;
+export const __wbg_processedimage_free: (a: number, b: number) => void;
+export const processedimage_ptr: (a: number) => number;
+export const processedimage_len: (a: number) => number;
+export const enhance_video_frame: (a: number, b: number, c: number, d: number, e: number) => number;
+export const super_resolution_bicubic: (a: number, b: number, c: number, d: number, e: number) => number;
+export const multiply_mat4_generic: (a: number, b: number, c: number) => void;
+export const processedparticles_ptr: (a: number) => number;
+export const processedparticles_len: (a: number) => number;
+export const __wbindgen_export_0: WebAssembly.Table;
+export const __wbindgen_start: () => void;
