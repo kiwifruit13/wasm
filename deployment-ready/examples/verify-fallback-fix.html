@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fallback Mode 修复验证</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px;
+        }
+        .test-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .btn:hover { background: #5a6fd8; }
+        .btn.success { background: #28a745; }
+        .btn.warning { background: #ffc107; color: #333; }
+        .btn.error { background: #dc3545; }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+        }
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Fallback Mode 修复验证</h1>
+            <p>验证 fallback_mode 场景测试修复效果</p>
+        </div>
+        
+        <div class="content">
+            <div class="test-section">
+                <h3>📋 测试状态</h3>
+                <div id="status">准备运行测试...</div>
+            </div>
+
+            <div class="test-section">
+                <h3>🚀 快速验证</h3>
+                <button class="btn" onclick="runQuickTest()">运行 Fallback Mode 快速测试</button>
+                <button class="btn" onclick="runIntegrationHealthTest()">验证 Integration Health 修复</button>
+                <div id="quickResult"></div>
+            </div>
+
+            <div class="test-section">
+                <h3>📊 完整测试结果</h3>
+                <button class="btn" onclick="runFullTest()">运行完整集成测试</button>
+                <div id="fullResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载引擎 -->
+    <script src="./src/engine/hypergpu-engine-test.js"></script>
+    <script src="./src/testing/integration-tests.js"></script>
+
+    <script>
+        function showResult(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="result ${type}">${message}</div>`;
+        }
+
+        function updateStatus(message, type = 'info') {
+            const colors = {
+                success: '#28a745',
+                error: '#dc3545', 
+                warning: '#ffc107',
+                info: '#667eea'
+            };
+            document.getElementById('status').innerHTML = 
+                `<span style="color: ${colors[type]}; font-weight: bold;">${message}</span>`;
+        }
+
+        async function runQuickTest() {
+            updateStatus('正在运行 Fallback Mode 快速测试...', 'info');
+            
+            try {
+                // 检查环境
+                if (typeof window.HyperGpuIntegrationTestManager === 'undefined') {
+                    throw new Error('集成测试管理器未加载');
+                }
+
+                const manager = window.HyperGpuIntegrationTestManager;
+
+                // 初始化测试环境
+                const envReady = await manager.initializeTestEnvironment();
+                if (!envReady) {
+                    throw new Error('测试环境初始化失败');
+                }
+
+                // 重置结果
+                manager.results = {
+                    total: 0,
+                    passed: 0,
+                    failed: 0,
+                    skipped: 0,
+                    details: [],
+                    integrationHealth: 0
+                };
+
+                // 运行 fallback mode 测试
+                await manager.testFallbackMode();
+
+                // 检查结果
+                const fallbackResult = manager.results.details.find(r => r.scenario === 'fallback_mode');
+                
+                if (fallbackResult && fallbackResult.status === 'passed') {
+                    const details = fallbackResult.details;
+                    let resultText = `
+✅ <strong>Fallback Mode 测试通过！</strong><br><br>
+📊 <strong>测试详情:</strong><br>
+• WASM 降级模块: ${details.wasmFallbackWorking ? '✅ 正常' : '❌ 异常'}<br>
+• WebGPU 降级模块: ${details.webgpuFallbackWorking ? '✅ 正常' : '❌ 异常'}<br>
+• WebGPU 初始化结果: ${details.webgpuInitResult || '未知'}<br>
+• 降级模式状态: ${details.fallbackMode || '未知'}<br>`;
+
+                    if (details.vectorNormalization) {
+                        const vn = details.vectorNormalization;
+                        resultText += `<br>🧮 <strong>向量归一化测试:</strong><br>
+• 输入: [${vn.input.join(', ')}]<br>
+• 输出: [${vn.output.map(v => v.toFixed(3)).join(', ')}]<br>
+• 向量长度: ${vn.magnitude} (目标: 1.000000)<br>`;
+                    }
+
+                    if (details.additionalTests) {
+                        const at = details.additionalTests;
+                        resultText += `<br>🔧 <strong>功能验证:</strong><br>
+• normalizeVectorGeneric: ${at.wasmFunctions.normalizeVectorGeneric ? '✅' : '❌'}<br>
+• multiplyMat4Generic: ${at.wasmFunctions.multiplyMat4Generic ? '✅' : '❌'}<br>
+• WebGPU isSupported: ${at.webgpuFallback.isSupported ? '✅' : '❌'}<br>`;
+                    }
+
+                    showResult('quickResult', 'success', resultText);
+                    updateStatus('Fallback Mode 测试通过', 'success');
+                } else {
+                    const error = fallbackResult ? fallbackResult.error : '未找到测试结果';
+                    showResult('quickResult', 'error', `❌ <strong>Fallback Mode 测试失败</strong><br><br>错误信息: ${error}`);
+                    updateStatus('Fallback Mode 测试失败', 'error');
+                }
+
+            } catch (error) {
+                showResult('quickResult', 'error', `❌ <strong>测试执行失败</strong><br><br>错误: ${error.message}`);
+                updateStatus('测试执行失败', 'error');
+            }
+        }
+
+        async function runIntegrationHealthTest() {
+            updateStatus('正在验证 Integration Health 计算...', 'info');
+            
+            try {
+                if (typeof window.runIntegrationTests !== 'function') {
+                    throw new Error('runIntegrationTests 函数不存在');
+                }
+
+                const results = await window.runIntegrationTests();
+                
+                if (results) {
+                    const health = parseFloat(results.integrationHealth);
+                    const passRate = results.total > 0 ? ((results.passed / results.total) * 100).toFixed(1) : 0;
+                    
+                    let resultText = `
+✅ <strong>Integration Health 计算正常</strong><br><br>
+📈 <strong>健康度指标:</strong><br>
+• Integration Health: ${results.integrationHealth}%<br>
+• 通过率: ${passRate}% (${results.passed}/${results.total})<br>
+• 失败测试: ${results.failed}<br><br>`;
+
+                    // 检查 fallback_mode 在完整测试中的表现
+                    const fallbackResult = results.details.find(r => r.scenario === 'fallback_mode');
+                    if (fallbackResult) {
+                        resultText += `🔍 <strong>Fallback Mode 在完整测试中:</strong><br>
+• 状态: ${fallbackResult.status}<br>
+• 错误: ${fallbackResult.error || '无'}<br><br>`;
+                    }
+
+                    // 显示场景详情
+                    resultText += `📋 <strong>测试场景详情:</strong><br>`;
+                    const scenarios = ['full_initialization', 'fallback_mode'];
+                    scenarios.forEach(scenario => {
+                        const scenarioTests = results.details.filter(r => r.scenario === scenario);
+                        const scenarioPassed = scenarioTests.filter(r => r.status === 'passed').length;
+                        const scenarioTotal = scenarioTests.length;
+                        const scenarioRate = scenarioTotal > 0 ? ((scenarioPassed / scenarioTotal) * 100).toFixed(1) : 'N/A';
+                        
+                        resultText += `• ${scenario}: ${scenarioRate}% (${scenarioPassed}/${scenarioTotal})<br>`;
+                    });
+
+                    if (health > 0) {
+                        showResult('quickResult', 'success', resultText);
+                        updateStatus('Integration Health 计算正常', 'success');
+                    } else {
+                        showResult('quickResult', 'error', resultText + '<br>⚠️ <strong>警告:</strong> Integration Health 仍为 0%');
+                        updateStatus('Integration Health 可能还有问题', 'warning');
+                    }
+                } else {
+                    throw new Error('集成测试返回空结果');
+                }
+
+            } catch (error) {
+                showResult('quickResult', 'error', `❌ <strong>Integration Health 测试失败</strong><br><br>错误: ${error.message}`);
+                updateStatus('Integration Health 测试失败', 'error');
+            }
+        }
+
+        async function runFullTest() {
+            updateStatus('正在运行完整集成测试...', 'info');
+            
+            try {
+                if (typeof window.runIntegrationTests !== 'function') {
+                    throw new Error('runIntegrationTests 函数不存在');
+                }
+
+                const results = await window.runIntegrationTests();
+                
+                if (results) {
+                    const health = parseFloat(results.integrationHealth);
+                    
+                    let resultText = `
+📊 <strong>完整集成测试报告</strong><br><br>
+📈 <strong>总体指标:</strong><br>
+• 总测试数: ${results.total}<br>
+• 通过: ${results.passed}<br>
+• 失败: ${results.failed}<br>
+• 跳过: ${results.skipped}<br>
+• Integration Health: ${results.integrationHealth}%<br><br>`;
+
+                    // 显示所有测试场景的详情
+                    const scenarios = ['full_initialization', 'fallback_mode', 'memory_management', 'performance_optimization', 'error_recovery', 'multi_component_interaction'];
+                    resultText += `🎯 <strong>各场景测试结果:</strong><br>`;
+                    
+                    scenarios.forEach(scenario => {
+                        const scenarioTests = results.details.filter(r => r.scenario === scenario);
+                        const scenarioPassed = scenarioTests.filter(r => r.status === 'passed').length;
+                        const scenarioTotal = scenarioTests.length;
+                        const scenarioRate = scenarioTotal > 0 ? ((scenarioPassed / scenarioTotal) * 100).toFixed(1) : 'N/A';
+                        const status = scenarioTotal > 0 ? (scenarioPassed === scenarioTotal ? '✅' : scenarioPassed > 0 ? '⚠️' : '❌') : '➖';
+                        
+                        resultText += `${status} ${scenario}: ${scenarioRate}% (${scenarioPassed}/${scenarioTotal})<br>`;
+                    });
+
+                    // 特别关注失败的测试
+                    const failedTests = results.details.filter(r => r.status === 'failed');
+                    if (failedTests.length > 0) {
+                        resultText += `<br>❌ <strong>失败的测试:</strong><br>`;
+                        failedTests.forEach(test => {
+                            resultText += `• ${test.name}: ${test.error}<br>`;
+                        });
+                    }
+
+                    const resultType = health >= 75 ? 'success' : health >= 50 ? 'info' : 'error';
+                    showResult('fullResult', resultType, resultText);
+                    
+                    if (health >= 75) {
+                        updateStatus('完整集成测试通过', 'success');
+                    } else if (health >= 50) {
+                        updateStatus('完整集成测试部分通过', 'warning');
+                    } else {
+                        updateStatus('完整集成测试需要改进', 'error');
+                    }
+                } else {
+                    throw new Error('集成测试返回空结果');
+                }
+
+            } catch (error) {
+                showResult('fullResult', 'error', `❌ <strong>完整测试失败</strong><br><br>错误: ${error.message}`);
+                updateStatus('完整测试失败', 'error');
+            }
+        }
+
+        // 页面加载后自动检查环境
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const checks = [
+                    ['ModuleLoader', typeof ModuleLoader !== 'undefined'],
+                    ['HyperGpuIntegrationTestManager', typeof window.HyperGpuIntegrationTestManager !== 'undefined'],
+                    ['runIntegrationTests', typeof window.runIntegrationTests === 'function']
+                ];
+
+                const allReady = checks.every(([, status]) => status);
+                
+                if (allReady) {
+                    updateStatus('✅ 所有组件已就绪，可以开始测试', 'success');
+                } else {
+                    const missing = checks.filter(([, status]) => !status).map(([name]) => name);
+                    updateStatus(`⚠️ 缺少组件: ${missing.join(', ')}`, 'warning');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
