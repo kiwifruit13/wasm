@@ -274,7 +274,7 @@
     
     // WASM 文件 URL（使用 jsDelivr CDN）
     // 基于用户的实际 GitHub 仓库：kiwifruit13/wasm
-    const WASM_URL = 'https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/webgpu_wasm_core_bg.wasm';
+    let WASM_URL = 'https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/webgpu_wasm_core_bg.wasm';
 
     async function __wbg_init_custom(wasmUrl) {
         if (wasm !== undefined) return wasm;
@@ -417,6 +417,27 @@
             getWasm: function() {
                 if (!wasm) throw new Error('WASM not initialized. Call init() first.');
                 return wasm;
+            },
+            
+            // 内存管理函数包装
+            malloc: function(size) {
+                if (!wasm) throw new Error('WASM not initialized. Call init() first.');
+                if (typeof wasm.__wbindgen_malloc !== 'function') {
+                    const availableFunctions = Object.keys(wasm).filter(key => typeof wasm[key] === 'function');
+                    console.error('Available WASM functions:', availableFunctions);
+                    throw new Error(`__wbindgen_malloc function not found in WASM module. Available functions: ${availableFunctions.join(', ')}`);
+                }
+                return wasm.__wbindgen_malloc(size);
+            },
+            
+            free: function(ptr, size) {
+                if (!wasm) throw new Error('WASM not initialized. Call init() first.');
+                if (typeof wasm.__wbindgen_free !== 'function') {
+                    const availableFunctions = Object.keys(wasm).filter(key => typeof wasm[key] === 'function');
+                    console.error('Available WASM functions:', availableFunctions);
+                    throw new Error(`__wbindgen_free function not found in WASM module. Available functions: ${availableFunctions.join(', ')}`);
+                }
+                return wasm.__wbindgen_free(ptr, size);
             }
         }
     };

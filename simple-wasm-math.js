@@ -27,20 +27,35 @@
 
         async _ensureReady() {
             if (!this._wasm) {
-                await this.ready;
-                this._wasm = VectorMathWasmLib.utils.getWasm();
+                try {
+                    await this.ready;
+                    this._wasm = VectorMathWasmLib.utils.getWasm();
+                    
+                    // 验证 WASM 对象是否有效
+                    if (!this._wasm) {
+                        throw new Error('WASM 对象初始化失败');
+                    }
+                } catch (error) {
+                    console.error('WASM 初始化失败:', error);
+                    throw error;
+                }
             }
         }
 
         // 内存管理辅助函数
         _withMemory(arrays, callback) {
+            if (!this._wasm) {
+                throw new Error('WASM 对象未初始化，请先调用 _ensureReady()');
+            }
+            
             const pointers = [];
             const memory = new Uint8Array(this._wasm.memory.buffer);
 
             try {
                 // 分配内存并复制数据
                 for (const arr of arrays) {
-                    const ptr = this._wasm.__wbindgen_malloc(arr.byteLength);
+                    // 使用包装的内存管理函数
+                    const ptr = VectorMathWasmLib.utils.malloc(arr.byteLength);
                     memory.set(new Uint8Array(arr.buffer), ptr);
                     pointers.push({ ptr, size: arr.byteLength });
                 }
@@ -51,7 +66,7 @@
             } finally {
                 // 释放所有内存
                 for (const { ptr, size } of pointers) {
-                    this._wasm.__wbindgen_free(ptr, size);
+                    VectorMathWasmLib.utils.free(ptr, size);
                 }
             }
         }
@@ -267,8 +282,18 @@
 
         async _ensureReady() {
             if (!this._wasm) {
-                await this.ready;
-                this._wasm = VectorMathWasmLib.utils.getWasm();
+                try {
+                    await this.ready;
+                    this._wasm = VectorMathWasmLib.utils.getWasm();
+                    
+                    // 验证 WASM 对象是否有效
+                    if (!this._wasm) {
+                        throw new Error('WASM 对象初始化失败');
+                    }
+                } catch (error) {
+                    console.error('WASM 初始化失败:', error);
+                    throw error;
+                }
             }
         }
 
@@ -288,9 +313,9 @@
             const result = new Float32Array(16);
             const memory = new Uint8Array(this._wasm.memory.buffer);
             
-            const matAPtr = this._wasm.__wbindgen_malloc(matA.byteLength);
-            const matBPtr = this._wasm.__wbindgen_malloc(matB.byteLength);
-            const resultPtr = this._wasm.__wbindgen_malloc(result.byteLength);
+            const matAPtr = VectorMathWasmLib.utils.malloc(matA.byteLength);
+            const matBPtr = VectorMathWasmLib.utils.malloc(matB.byteLength);
+            const resultPtr = VectorMathWasmLib.utils.malloc(result.byteLength);
 
             try {
                 memory.set(new Uint8Array(matA.buffer), matAPtr);
@@ -302,9 +327,9 @@
                 return new Float32Array(resultBytes.buffer.slice(0, result.byteLength));
 
             } finally {
-                this._wasm.__wbindgen_free(matAPtr, matA.byteLength);
-                this._wasm.__wbindgen_free(matBPtr, matB.byteLength);
-                this._wasm.__wbindgen_free(resultPtr, result.byteLength);
+                VectorMathWasmLib.utils.free(matAPtr, matA.byteLength);
+                VectorMathWasmLib.utils.free(matBPtr, matB.byteLength);
+                VectorMathWasmLib.utils.free(resultPtr, result.byteLength);
             }
         }
 
@@ -321,14 +346,14 @@
             }
 
             const memory = new Uint8Array(this._wasm.memory.buffer);
-            const matPtr = this._wasm.__wbindgen_malloc(mat.byteLength);
+            const matPtr = VectorMathWasmLib.utils.malloc(mat.byteLength);
 
             try {
                 memory.set(new Uint8Array(mat.buffer), matPtr);
                 return VectorMathWasmLib.matrix.det2x2(matPtr);
 
             } finally {
-                this._wasm.__wbindgen_free(matPtr, mat.byteLength);
+                VectorMathWasmLib.utils.free(matPtr, mat.byteLength);
             }
         }
     }

@@ -74,9 +74,9 @@ const vec2 = new Float32Array([4.0, 5.0, 6.0]);
 const result = new Float32Array(3);
 
 // 分配 WASM 内存
-const vec1Ptr = wasm.__wbindgen_malloc(vec1.byteLength);
-const vec2Ptr = wasm.__wbindgen_malloc(vec2.byteLength);
-const resultPtr = wasm.__wbindgen_malloc(result.byteLength);
+const vec1Ptr = VectorMathWasmLib.utils.malloc(vec1.byteLength);
+const vec2Ptr = VectorMathWasmLib.utils.malloc(vec2.byteLength);
+const resultPtr = VectorMathWasmLib.utils.malloc(result.byteLength);
 
 try {
   // 将数据复制到 WASM 内存
@@ -97,9 +97,9 @@ try {
   VectorMathWasmLib.vector.cross3d(vec1Ptr, vec2Ptr, resultPtr);
 } finally {
   // 释放内存
-  wasm.__wbindgen_free(vec1Ptr, vec1.byteLength);
-  wasm.__wbindgen_free(vec2Ptr, vec2.byteLength);
-  wasm.__wbindgen_free(resultPtr, result.byteLength);
+  VectorMathWasmLib.utils.free(vec1Ptr, vec1.byteLength);
+  VectorMathWasmLib.utils.free(vec2Ptr, vec2.byteLength);
+  VectorMathWasmLib.utils.free(resultPtr, result.byteLength);
 }
 ```
 
@@ -191,7 +191,7 @@ const normalized = await wasmVectorNormalize(new Float32Array([3, 4, 0]));
 
 ### 内存管理
 
-1. **手动释放**：使用 `wasm.__wbindgen_free()` 释放分配的内存
+1. **手动释放**：使用 `VectorMathWasmLib.utils.free()` 释放分配的内存
 2. **自动释放**：`ProcessedImage` 和 `ProcessedParticles` 对象支持自动垃圾回收
 3. **内存泄漏**：确保在 `try...finally` 块中正确释放内存
 
