@@ -6,115 +6,87 @@
 // @author       kiwifruit13
 // @license      MIT
 // ==/UserScript==
-
 (function(globalThis) {
     'use strict';
-
     // ================================
     // WASM 胶水代码开始 (基于 020.txt)
     // ================================
-    
     let wasm;
-
     const cachedTextDecoder = (typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8', { ignoreBOM: true, fatal: true }) : { decode: () => { throw Error('TextDecoder not available') } } );
-
     if (typeof TextDecoder !== 'undefined') { cachedTextDecoder.decode(); };
-
     let cachedUint8ArrayMemory0 = null;
-
     function getUint8ArrayMemory0() {
         if (cachedUint8ArrayMemory0 === null || cachedUint8ArrayMemory0.byteLength === 0) {
             cachedUint8ArrayMemory0 = new Uint8Array(wasm.memory.buffer);
         }
         return cachedUint8ArrayMemory0;
     }
-
     function getStringFromWasm0(ptr, len) {
         ptr = ptr >>> 0;
         return cachedTextDecoder.decode(getUint8ArrayMemory0().subarray(ptr, ptr + len));
     }
-
     // ================================
     // 向量数学函数
     // ================================
-    
     function init_wasm() {
         wasm.init_wasm();
     }
-
     function normalize_vector(vec_ptr) {
         wasm.normalize_vector(vec_ptr);
     }
-
     function normalize_vector_generic(ptr, len) {
         wasm.normalize_vector_generic(ptr, len);
     }
-
     function vector_add(a_ptr, b_ptr, result_ptr, len) {
         wasm.vector_add(a_ptr, b_ptr, result_ptr, len);
     }
-
     function vector_sub(a_ptr, b_ptr, result_ptr, len) {
         wasm.vector_sub(a_ptr, b_ptr, result_ptr, len);
     }
-
     function vector_scale(scalar, vec_ptr, result_ptr, len) {
         wasm.vector_scale(scalar, vec_ptr, result_ptr, len);
     }
-
     function vector_dot(a_ptr, b_ptr, len) {
         const ret = wasm.vector_dot(a_ptr, b_ptr, len);
         return ret;
     }
-
     function vector_cross_3d(a_ptr, b_ptr, result_ptr) {
         wasm.vector_cross_3d(a_ptr, b_ptr, result_ptr);
     }
-
     // ================================
     // 矩阵运算函数
     // ================================
-    
     function multiply_mat4(mat_a_ptr, mat_b_ptr, result_ptr) {
         wasm.multiply_mat4(mat_a_ptr, mat_b_ptr, result_ptr);
     }
-
     function multiply_mat4_generic(a_ptr, b_ptr, c_ptr) {
         wasm.multiply_mat4(a_ptr, b_ptr, c_ptr);
     }
-
     function matrix_transpose(mat_ptr, rows, cols, result_ptr) {
         wasm.matrix_transpose(mat_ptr, rows, cols, result_ptr);
     }
-
     function matrix_det_2x2(mat_ptr) {
         const ret = wasm.matrix_det_2x2(mat_ptr);
         return ret;
     }
-
     function matrix_det_3x3(mat_ptr) {
         const ret = wasm.matrix_det_3x3(mat_ptr);
         return ret;
     }
-
     function matrix_inv_2x2(mat_ptr, result_ptr) {
         const ret = wasm.matrix_inv_2x2(mat_ptr, result_ptr);
         return ret !== 0;
     }
-
     function quadratic_form(x_ptr, a_ptr, n) {
         const ret = wasm.quadratic_form(x_ptr, a_ptr, n);
         return ret;
     }
-
     // ================================
     // 处理后的图像数据结构
     // ================================
-    
     const ProcessedImageFinalization = (typeof FinalizationRegistry === 'undefined')
         ? { register: () => {}, unregister: () => {} }
         : new FinalizationRegistry(ptr => wasm.__wbg_processedimage_free(ptr >>> 0, 1));
-
     class ProcessedImage {
         static __wrap(ptr) {
             ptr = ptr >>> 0;
@@ -123,38 +95,31 @@
             ProcessedImageFinalization.register(obj, obj.__wbg_ptr, obj);
             return obj;
         }
-
         __destroy_into_raw() {
             const ptr = this.__wbg_ptr;
             this.__wbg_ptr = 0;
             ProcessedImageFinalization.unregister(this);
             return ptr;
         }
-
         free() {
             const ptr = this.__destroy_into_raw();
             wasm.__wbg_processedimage_free(ptr, 0);
         }
-
         get ptr() {
             const ret = wasm.processedimage_ptr(this.__wbg_ptr);
             return ret >>> 0;
         }
-
         get len() {
             const ret = wasm.processedimage_len(this.__wbg_ptr);
             return ret >>> 0;
         }
     }
-
     // ================================
     // 处理后的粒子数据结构
     // ================================
-    
     const ProcessedParticlesFinalization = (typeof FinalizationRegistry === 'undefined')
         ? { register: () => {}, unregister: () => {} }
         : new FinalizationRegistry(ptr => wasm.__wbg_processedparticles_free(ptr >>> 0, 1));
-
     class ProcessedParticles {
         static __wrap(ptr) {
             ptr = ptr >>> 0;
@@ -163,53 +128,43 @@
             ProcessedParticlesFinalization.register(obj, obj.__wbg_ptr, obj);
             return obj;
         }
-
         __destroy_into_raw() {
             const ptr = this.__wbg_ptr;
             this.__wbg_ptr = 0;
             ProcessedParticlesFinalization.unregister(this);
             return ptr;
         }
-
         free() {
             const ptr = this.__destroy_into_raw();
             wasm.__wbg_processedparticles_free(ptr, 0);
         }
-
         get ptr() {
             const ret = wasm.processedimage_ptr(this.__wbg_ptr);
             return ret >>> 0;
         }
-
         get len() {
             const ret = wasm.processedimage_len(this.__wbg_ptr);
             return ret >>> 0;
         }
     }
-
     // ================================
     // 粒子和图像处理函数
     // ================================
-    
     function preprocess_particles(particles_ptr, count, min_mass) {
         const ret = wasm.preprocess_particles(particles_ptr, count, min_mass);
         return ProcessedParticles.__wrap(ret);
     }
-
     function enhance_video_frame(input_data_ptr, in_width, in_height, out_width, out_height) {
         const ret = wasm.enhance_video_frame(input_data_ptr, in_width, in_height, out_width, out_height);
         return ProcessedImage.__wrap(ret);
     }
-
     function super_resolution_bicubic(input_ptr, in_width, in_height, out_width, out_height) {
         const ret = wasm.super_resolution_bicubic(input_ptr, in_width, in_height, out_width, out_height);
         return ProcessedImage.__wrap(ret);
     }
-
     // ================================
     // WASM 加载和初始化逻辑
     // ================================
-    
     async function __wbg_load(module, imports) {
         if (typeof Response === 'function' && module instanceof Response) {
             if (typeof WebAssembly.instantiateStreaming === 'function') {
@@ -223,12 +178,10 @@
                     }
                 }
             }
-
             const bytes = await module.arrayBuffer();
             return await WebAssembly.instantiate(bytes, imports);
         } else {
             const instance = await WebAssembly.instantiate(module, imports);
-
             if (instance instanceof WebAssembly.Instance) {
                 return { instance, module };
             } else {
@@ -236,7 +189,6 @@
             }
         }
     }
-
     function __wbg_get_imports() {
         const imports = {};
         imports.wbg = {};
@@ -253,42 +205,33 @@
         imports.wbg.__wbindgen_throw = function(arg0, arg1) {
             throw new Error(getStringFromWasm0(arg0, arg1));
         };
-
         return imports;
     }
-
     function __wbg_init_memory(imports, memory) {
         // 内存初始化逻辑
     }
-
     function __wbg_finalize_init(instance, module) {
         wasm = instance.exports;
         cachedUint8ArrayMemory0 = null;
         wasm.__wbindgen_start();
         return wasm;
     }
-
     // ================================
     // 自定义初始化函数（解决非模块化问题）
     // ================================
-    
     // WASM 文件 URL（使用 jsDelivr CDN）
     // 基于用户的实际 GitHub 仓库：kiwifruit13/wasm
     let WASM_URL = 'https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/webgpu_wasm_core_bg.wasm';
-
     async function __wbg_init_custom(wasmUrl) {
         if (wasm !== undefined) return wasm;
-
         const url = wasmUrl || WASM_URL;
         const imports = __wbg_get_imports();
         __wbg_init_memory(imports);
-
         try {
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`Failed to fetch WASM module: ${response.status} ${response.statusText}`);
             }
-
             const { instance, module } = await __wbg_load(response, imports);
             return __wbg_finalize_init(instance, module);
         } catch (error) {
@@ -296,31 +239,24 @@
             throw error;
         }
     }
-
     // 同步初始化函数
     function initSync(module) {
         if (wasm !== undefined) return wasm;
-
         const imports = __wbg_get_imports();
         __wbg_init_memory(imports);
-
         if (!(module instanceof WebAssembly.Module)) {
             module = new WebAssembly.Module(module);
         }
-
         const instance = new WebAssembly.Instance(module, imports);
         return __wbg_finalize_init(instance, module);
     }
-
     // ================================
     // 创建全局库对象
     // ================================
-    
     const VectorMathWasmLib = {
         // 初始化状态
         _initialized: false,
         ready: null,
-        
         // 手动设置 WASM URL
         setWasmUrl: function(url) {
             if (this._initialized) {
@@ -329,13 +265,11 @@
             }
             WASM_URL = url;
         },
-
         // 初始化函数
         init: function(wasmUrl) {
             if (this._initialized) {
                 return this.ready;
             }
-
             this.ready = __wbg_init_custom(wasmUrl).then(initializedWasm => {
                 this._initialized = true;
                 console.log('Vector Math WASM Library initialized successfully!');
@@ -344,10 +278,8 @@
                 console.error('Vector Math WASM Library initialization failed:', error);
                 throw error;
             });
-
             return this.ready;
         },
-
         // 获取 WASM 内存操作函数
         getMemory: function() {
             if (!wasm) throw new Error('WASM not initialized. Call init() first.');
@@ -356,7 +288,6 @@
                 getUint8Array: getUint8ArrayMemory0
             };
         },
-
         // ================================
         // 向量数学 API
         // ================================
@@ -370,7 +301,6 @@
             dot: vector_dot,
             cross3d: vector_cross_3d
         },
-
         // ================================
         // 矩阵运算 API  
         // ================================
@@ -383,7 +313,6 @@
             inv2x2: matrix_inv_2x2,
             quadraticForm: quadratic_form
         },
-
         // ================================
         // 图像处理 API
         // ================================
@@ -392,7 +321,6 @@
             superResolutionBicubic: super_resolution_bicubic,
             ProcessedImage: ProcessedImage
         },
-
         // ================================
         // 粒子处理 API
         // ================================
@@ -400,67 +328,60 @@
             preprocess: preprocess_particles,
             ProcessedParticles: ProcessedParticles
         },
-
         // ================================
-        // 工具函数
+        // 工具函数 (已修复 malloc/free)
         // ================================
         utils: {
             // 同步初始化（如果已有 WASM 模块）
             initSync: initSync,
-            
             // 检查是否已初始化
             isInitialized: function() {
                 return VectorMathWasmLib._initialized && wasm !== undefined;
             },
-
             // 获取原始 wasm 对象（高级用法）
             getWasm: function() {
                 if (!wasm) throw new Error('WASM not initialized. Call init() first.');
                 return wasm;
             },
-            
-            // 内存管理函数包装
+            // 内存管理函数包装 (修复为使用实际的导出函数名 malloc 和 free)
             malloc: function(size) {
                 if (!wasm) throw new Error('WASM not initialized. Call init() first.');
-                if (typeof wasm.__wbindgen_malloc !== 'function') {
+                // 修改函数名检查
+                if (typeof wasm.malloc !== 'function') {
                     const availableFunctions = Object.keys(wasm).filter(key => typeof wasm[key] === 'function');
                     console.error('Available WASM functions:', availableFunctions);
-                    throw new Error(`__wbindgen_malloc function not found in WASM module. Available functions: ${availableFunctions.join(', ')}`);
+                    throw new Error(`malloc function not found in WASM module. Available functions: ${availableFunctions.join(', ')}`);
                 }
-                return wasm.__wbindgen_malloc(size);
+                // 修改实际调用
+                return wasm.malloc(size);
             },
-            
             free: function(ptr, size) {
                 if (!wasm) throw new Error('WASM not initialized. Call init() first.');
-                if (typeof wasm.__wbindgen_free !== 'function') {
+                // 修改函数名检查
+                if (typeof wasm.free !== 'function') {
                     const availableFunctions = Object.keys(wasm).filter(key => typeof wasm[key] === 'function');
                     console.error('Available WASM functions:', availableFunctions);
-                    throw new Error(`__wbindgen_free function not found in WASM module. Available functions: ${availableFunctions.join(', ')}`);
+                    throw new Error(`free function not found in WASM module. Available functions: ${availableFunctions.join(', ')}`);
                 }
-                return wasm.__wbindgen_free(ptr, size);
+                // 修改实际调用 (注意：根据实际 WASM 函数签名，可能只需要 ptr)
+                // 如果遇到错误，可以尝试 return wasm.free(ptr);
+                return wasm.free(ptr, size);
             }
         }
     };
-
     // ================================
     // 立即初始化（可选）
     // ================================
-    
     // 自动开始初始化过程（但不阻塞）
     VectorMathWasmLib.ready = VectorMathWasmLib.init();
-
     // ================================
     // 暴露到全局作用域
     // ================================
-    
     // 主库对象
     globalThis.VectorMathWasmLib = VectorMathWasmLib;
-    
     // 为了兼容，也将类直接暴露到全局
     globalThis.ProcessedImage = ProcessedImage;
     globalThis.ProcessedParticles = ProcessedParticles;
-
     // 调试信息
     console.log('Vector Math WASM Library loaded. Use VectorMathWasmLib.ready.then() to wait for initialization.');
-
 })(typeof window !== 'undefined' ? window : globalThis);
