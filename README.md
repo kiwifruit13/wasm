@@ -18,7 +18,7 @@
 ```javascript
 // ==UserScript==
 // @name         Your Script Name
-// @require      https://your-cdn.com/vector-math-wasm-lib.js
+// @require      https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/vector-math-wasm-lib.js
 // @grant        none
 // ==/UserScript==
 
@@ -38,7 +38,7 @@
 ```javascript
 // 在初始化前设置自定义 URL
 VectorMathWasmLib.setWasmUrl(
-  "https://your-server.com/webgpu_wasm_core_bg.wasm"
+  "https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/webgpu_wasm_core_bg.wasm"
 );
 await VectorMathWasmLib.init();
 ```
@@ -52,7 +52,9 @@ await VectorMathWasmLib.init();
 await VectorMathWasmLib.ready;
 
 // 手动初始化
-await VectorMathWasmLib.init("https://custom-url.com/wasm-file.wasm");
+await VectorMathWasmLib.init(
+  "https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/webgpu_wasm_core_bg.wasm"
+);
 
 // 检查初始化状态
 if (VectorMathWasmLib.utils.isInitialized()) {
@@ -238,7 +240,8 @@ wasm-pack build --release --target web
 ```javascript
 // ==UserScript==
 // @name         WASM Vector Math Demo
-// @require      https://your-cdn.com/vector-math-wasm-lib.js
+// @require      https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/vector-math-wasm-lib.js
+// @require      https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/simple-wasm-math.js
 // @grant        none
 // ==/UserScript==
 
@@ -275,4 +278,4 @@ MIT License - 详见 LICENSE 文件
 
 ---
 
-**注意**：记得将 WASM 文件托管到可访问的 CDN 或服务器上，并在库中正确设置 URL。
+**注意**：您的 WASM 文件已经托管在 GitHub 上，可通过 jsDelivr CDN 访问：`https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/webgpu_wasm_core_bg.wasm`

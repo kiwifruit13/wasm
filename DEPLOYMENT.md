@@ -124,7 +124,8 @@ const WASM_URL =
   "https://raw.githubusercontent.com/kiwifruit13/wasm/refs/heads/main/webgpu_wasm_core_bg.wasm";
 
 // 替换为你的实际URL：
-const WASM_URL = "https://your-cdn.com/webgpu_wasm_core_bg.wasm";
+const WASM_URL =
+  "https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/webgpu_wasm_core_bg.wasm";
 ```
 
 ### 步骤 4：验证部署
@@ -134,7 +135,7 @@ const WASM_URL = "https://your-cdn.com/webgpu_wasm_core_bg.wasm";
 ```javascript
 // ==UserScript==
 // @name         WASM Library Test
-// @require      https://your-cdn.com/vector-math-wasm-lib.js
+// @require      https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/vector-math-wasm-lib.js
 // @grant        none
 // ==/UserScript==
 
@@ -224,12 +225,12 @@ export default {
 ```javascript
 // ==UserScript==
 // @name         Your Script Name
-// @namespace    https://your-domain.com
+// @namespace    https://github.com/kiwifruit13
 // @version      1.0.0
 // @description  使用 WASM 向量数学库
-// @author       Your Name
+// @author       kiwifruit13
 // @match        *://*/*
-// @require      https://your-cdn.com/vector-math-wasm-lib.js
+// @require      https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/vector-math-wasm-lib.js
 // @grant        none
 // ==/UserScript==
 
@@ -254,13 +255,13 @@ export default {
 ```javascript
 // ==UserScript==
 // @name         Your Script Name (Simple)
-// @namespace    https://your-domain.com
+// @namespace    https://github.com/kiwifruit13
 // @version      1.0.0
 // @description  使用简化版 WASM 向量数学库
-// @author       Your Name
+// @author       kiwifruit13
 // @match        *://*/*
-// @require      https://your-cdn.com/vector-math-wasm-lib.js
-// @require      https://your-cdn.com/simple-wasm-math.js
+// @require      https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/vector-math-wasm-lib.js
+// @require      https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/simple-wasm-math.js
 // @grant        none
 // ==/UserScript==
 
@@ -322,10 +323,10 @@ ETag: "version-hash"
 
 ```javascript
 // 推荐：版本化URL
-@require https://your-cdn.com/v1.0.0/vector-math-wasm-lib.js
+@require https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@v1.0.0/vector-math-wasm-lib.js
 
 // 不推荐：最新版本URL（可能不稳定）
-@require https://your-cdn.com/latest/vector-math-wasm-lib.js
+@require https://cdn.jsdelivr.net/gh/kiwifruit13/wasm@main/vector-math-wasm-lib.js
 ```
 
 ## 🔍 故障排除
